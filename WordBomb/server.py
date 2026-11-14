@@ -6,7 +6,10 @@ PORT = 5050
 players = []
 lock = threading.Lock()
 
-
+# Handles one connected client in its own thread.
+# Protocol: JOIN|name -> WELCOME|name + WAITING, LIST -> STATUS|waiting=...,
+# QUIT -> disconnect, anything else -> ERROR|BAD_MESSAGE.
+# The shared players list is only changed while holding `lock`.
 def handle_client(conn, addr):
     username = None
     print("Connected:", addr, flush=True)
@@ -48,7 +51,7 @@ def handle_client(conn, addr):
         conn.close()
         print("Disconnected:", username, flush=True)
 
-
+# Starts the TCP server on port 5050 and creates one thread per client.
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
